@@ -1,0 +1,6 @@
+# Build output and generated artifacts
+Bevy/target/
+Bevy/dist/
+Bevy/build/
+Bevy/mobile/
+nix/

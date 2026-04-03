@@ -1,0 +1,8 @@
+target/
+.idea/
+.DS_Store
+
+dist/
+Thumbs.db
+.vscode/
+*.tmp
