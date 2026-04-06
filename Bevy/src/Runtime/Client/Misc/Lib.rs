@@ -8,8 +8,6 @@ pub mod Misc;
 pub mod Resources;
 #[path = "../../Server/Mod.rs"]
 pub mod Server;
-#[path = "../../Shared/Mod.rs"]
-pub mod Shared;
 #[path = "../Systems/Mod.rs"]
 pub mod Systems;
 #[cfg(test)]
