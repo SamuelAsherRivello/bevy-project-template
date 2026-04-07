@@ -98,7 +98,10 @@ Bevy/
 ## How to run
 
 ```cmd
-# Native (dev)
+# Native (dev, fast iteration)
+cargo run-dev
+
+# Native (without dev feature path)
 cargo run
 
 # Native (release)
@@ -107,12 +110,21 @@ cargo build --profile dist
 # Web dev server (port 8080, auto-reload)
 trunk serve
 
+# Wasm compile-only check (fast feedback)
+cargo check-wasm
+
 # Web production build → dist/
 trunk build --release
+
+# Optimized wasm binary (without Trunk bundling)
+cargo build-wasm-release
 
 # Tests (headless, all platforms)
 cargo test
 ```
+
+Cargo aliases are configured in `Bevy/.cargo/config.toml`.
+Native fast iteration uses the `dev_native` feature (`bevy/dynamic_linking`).
 
 ---
 

@@ -16,7 +16,7 @@ The template includes out-of-the-box builds for **Windows, Linux, macOS, Web (Wa
 1. Clone or download this repository
 1. Open a terminal in the repo root
 1. Change into the active project with `cd Bevy`
-1. Run the app with `cargo run`
+1. Run the app with `cargo run-dev` (fast iteration)
 1. Build an optimized version with `cargo build --profile dist`
 
 ### Build for Wasm Browser
@@ -141,8 +141,33 @@ Run from repo root:
 
 ```cmd
 cd Bevy
-cargo run
+cargo run-dev
 ```
+
+`cargo run-dev` is a repo alias for `cargo run --features dev_native`, which enables Bevy dynamic linking for faster native iteration.
+Use plain `cargo run` when you want to verify the non-dev-feature path.
+
+On Windows, `Bevy/.cargo/config.toml` sets the linker to `rust-lld.exe` for faster links.
+
+#### Fast Compile Timing Check (Native)
+
+Run from repo root on the same machine/session to get meaningful comparisons:
+
+```cmd
+cd Bevy
+cargo clean
+Measure-Command { cargo check-dev } | Select-Object TotalSeconds
+Measure-Command { cargo check-dev } | Select-Object TotalSeconds
+```
+
+Then change one small Rust line (for example in `Bevy/src/Runtime/Client/Plugins/PlayerPlugin.rs`) and time again:
+
+```cmd
+cd Bevy
+Measure-Command { cargo check-dev } | Select-Object TotalSeconds
+```
+
+Expected behavior: first build is much slower (cold), while warm incremental checks after tiny edits are much faster.
 
 For an optimized distribution build from repo root:
 
@@ -167,11 +192,37 @@ cd Bevy
 trunk serve
 ```
 
+For fast wasm compile checks without bundling, use:
+
+```cmd
+cd Bevy
+cargo check-wasm
+```
+
 **Production web build** (outputs to `Bevy/dist/`) from repo root:
 
 ```cmd
 cd Bevy
 trunk build --release
+```
+
+For an optimized wasm binary without Trunk bundling, use:
+
+```cmd
+cd Bevy
+cargo build-wasm-release
+```
+
+#### Optional: Experimental Cranelift Path
+
+Cranelift can reduce compile time further in some projects, but it is nightly-only and can drift with toolchain updates.
+Keep this as an opt-in local experiment, not a default team workflow.
+
+```cmd
+rustup toolchain install nightly
+rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+cd Bevy
+cargo +nightly check -Zcodegen-backend=cranelift
 ```
 
 ### How To Use This Template
@@ -183,7 +234,7 @@ trunk build --release
 
 Platform entry points:
 
-- Native app: `cargo run`
+- Native app (fast iteration): `cargo run-dev`
 - Web build: `trunk serve`
 - Android app: `cargo apk run --manifest-path Bevy/mobile/Cargo.toml`
 - iOS app: `make run` inside `Bevy/mobile`

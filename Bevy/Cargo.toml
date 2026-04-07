@@ -20,7 +20,9 @@ members = ["mobile"]
 opt-level = 3
 
 [profile.dev]
-opt-level = 1
+# Prioritize compile speed for game code during iteration.
+opt-level = 0
+debug = 1
 
 # This is used by trunk as it doesn't support custom profiles: https://github.com/trunk-rs/trunk/issues/605
 # xbuild also uses this profile for building android AABs because I couldn't find a configuration for it
@@ -39,9 +41,10 @@ codegen-units = 1
 strip = true
 
 [features]
-dev = [
+dev_native = [
     "bevy/dynamic_linking",
 ]
+dev = ["dev_native"]
 
 # All of Bevy's default features exept for the audio related ones (bevy_audio, vorbis), since they clash with bevy_kira_audio
 #   and android_shared_stdcxx/android-game-activity, since those are covered in `mobile`

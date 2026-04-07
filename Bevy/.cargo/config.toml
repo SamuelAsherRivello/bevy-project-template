@@ -1,2 +1,15 @@
-﻿[target.wasm32-unknown-unknown]
+﻿[alias]
+# Fast native iteration path: enables Bevy dynamic linking for shorter rebuilds.
+run-dev = "run --features dev_native"
+check-dev = "check --features dev_native"
+test-dev = "test --features dev_native"
+
+# Wasm-focused checks/builds.
+check-wasm = "check --target wasm32-unknown-unknown"
+build-wasm-release = "build --target wasm32-unknown-unknown --release"
+
+[target.wasm32-unknown-unknown]
 rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
