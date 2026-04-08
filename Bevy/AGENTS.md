@@ -124,7 +124,7 @@ cargo test
 ```
 
 Cargo aliases are configured in `Bevy/.cargo/config.toml`.
-Native fast iteration uses the `dev_native` feature (`bevy/dynamic_linking`).
+Native fast iteration uses the `dev_native` feature (`bevy/dynamic_linking` + `bevy/file_watcher`).
 
 ---
 

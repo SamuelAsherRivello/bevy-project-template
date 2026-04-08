@@ -144,8 +144,19 @@ cd Bevy
 cargo run-dev
 ```
 
-`cargo run-dev` is a repo alias for `cargo run --features dev_native`, which enables Bevy dynamic linking for faster native iteration.
+`cargo run-dev` is a repo alias for `cargo run --features dev_native`, which enables Bevy dynamic linking and Bevy's official `file_watcher` asset hot reload for faster native iteration.
 Use plain `cargo run` when you want to verify the non-dev-feature path.
+
+#### Asset Hot Reload (Native)
+
+When running with `cargo run-dev`, edits to files under `Bevy/assets/` are watched and reloaded at runtime by Bevy's asset system.
+
+Current limitations of this official workflow:
+
+- It only applies to assets loaded through Bevy's `AssetServer` (for example, textures/audio loaded from `assets/`), not arbitrary files you read manually.
+- It is enabled in this template's `dev_native` path; `cargo run` without `--features dev_native` does not enable the watcher.
+- Web/WASM and mobile workflows do not provide this native filesystem watching behavior at runtime.
+- File watching depends on OS filesystem notifications and can be less reliable on some network/virtualized/synced folders.
 
 On Windows, `Bevy/.cargo/config.toml` sets the linker to `rust-lld.exe` for faster links.
 

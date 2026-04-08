@@ -8,7 +8,7 @@ use bevy::prelude::*;
 
 const PLAYER_SPEED: f32 = 150.0;
 const PLAYER_Z_INDEX: f32 = 1.0;
-const PLAYER_BASE_SCALE: f32 = 0.5;
+const PLAYER_BASE_SCALE: f32 = 0.25;
 const PLAYER_DEFAULT_SCALE: Vec3 = Vec3::splat(PLAYER_BASE_SCALE);
 const PLAYER_SHRINK_FACTOR: f32 = 0.9;
 

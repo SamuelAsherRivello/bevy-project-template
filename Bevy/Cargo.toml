@@ -43,6 +43,7 @@ strip = true
 [features]
 dev_native = [
     "bevy/dynamic_linking",
+    "bevy/file_watcher",
 ]
 dev = ["dev_native"]
 
