@@ -1,355 +1,46 @@
-# A Bevy Game Template
+# Bevy Project Template - With Hot Reload
 
-This repo is a production-ready starting point for games built with the awesome [Bevy engine][bevy].
+Bevy project template.
 
-The template includes out-of-the-box builds for **Windows, Linux, macOS, Web (Wasm), Android, and iOS**.
+Features:
 
-![Bevy game screenshot](./Bevy/documentation/images/Screenshot.png)
+* Hot reload for fast iteration
+* App window remembers screen position
+* App window persists during hot reload
+* App is Windows native
+* App also runs in the browser via wasm
 
-<BR>
+## Getting Started
 
-# Getting Started: Steps
 
-### Build for Native Windows
+| Script | Description | Required? |
+| ------ | ----------- | --------- |
+| [`InstallProject.ps1`](./scripts/InstallProject.ps1) | Installs Rust with `rustup` if needed and builds the workspace once. | ✅ |
+| [`RunProjectWithHotReload.ps1`](./scripts/RunProjectWithHotReload.ps1) | Starts the app with hot reload enabled. Edit files under [`rust/crates/game/src`](./rust/crates/game/src) and save to rebuild the game DLL. | ✅ |
+| [`RunProjectWithHotReloadWasm.ps1`](./scripts/RunProjectWithHotReloadWasm.ps1) | Starts the wasm build in a browser using `trunk serve` with rebuild and page live reload. | ❌ |
+| [`BuildProject.ps1`](./scripts/BuildProject.ps1) | Builds the project without running it. | ❌ |
+| [`RunProject.ps1`](./scripts/RunProject.ps1)  | Starts the project without hot reload. | ❌ |
+| [`StopProject.ps1`](./scripts/StopProject.ps1) | Stops the non-hot-reload run. | ❌ |
 
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-1. Clone or download this repository
-1. Open a terminal in the repo root
-1. Change into the active project with `cd Bevy`
-1. Run the app with `cargo run-dev` (fast iteration)
-1. Build an optimized version with `cargo build --profile dist`
+## Structure
 
-### Build for Wasm Browser
 
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-1. Install Trunk with `cargo install --locked trunk`
-1. Install the wasm target with `rustup target add wasm32-unknown-unknown`
-1. Clone or download this repository
-1. Open a terminal in the repo root
-1. Change into the active project with `cd Bevy`
-1. Start the dev server with `trunk serve --features dev_wasm` (or `trunk serve`)
-1. Build the production web version with `trunk build --release`
+| Crate                                    | Description                                                                                                                 | Hot Reloaded? |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| [`game`](./rust/crates/game)             | Reloadable game DLL. This is the crate rebuilt and swapped during hot reload.                                               | ✅            |
+| [`game_api`](./rust/crates/game_api)     | Shared ABI-safe runtime context used by both the shell and the game.                                                        | ❌            |
+| [`game_shell`](./rust/crates/game_shell) | Long-running windowed host executable that owns the OS window, watches source changes, rebuilds`game`, and reloads the DLL. | ❌            |
 
-### Deploy Web Build To GitHub Pages
-
-1. Trigger the `deploy-github-page` workflow
-1. Activate GitHub Pages for your repository
-1. Use the `gh-pages` branch created by the workflow
-1. Wait a few minutes for the site to go live at `http://username.github.io/repository`
-
-<BR>
-<BR>
-
-## Table of Contents
-
-1. [About](#about)
-1. [Overview](#overview)
-1. [Resources](#resources)
-1. [Credits](#credits)
-
-<BR>
-<BR>
-
-## About
-
-### Template Basics
-
-This template contains the following:
-
-| Name | Description |
-|---|---|
-| [`Bevy/AGENTS.md`](./Bevy/AGENTS.md) | Repo conventions, folder map, and guidance for AI coding agents. |
-| `Bevy/src/Runtime/Client/Components/` | ECS component types attached to entities. |
-| `Bevy/src/Runtime/Client/Resources/` | Resources, typed asset handles, and input intent. |
-| `Bevy/src/Runtime/Client/Systems/` | System-function-heavy plugin entrypoints, one per feature. |
-| `Bevy/src/Runtime/Client/Plugins/` | Feature-level Bevy Plugin implementations (menu, player, etc.). |
-| `Bevy/src/Tests/` | Headless in-crate tests compiled only for test builds. |
-| [`bevy_asset_loader`](https://github.com/NiklasEi/bevy_asset_loader) | Typed, state-driven asset loading. |
-| [`bevy_kira_audio`](https://github.com/NiklasEi/bevy_kira_audio) | Cross-platform audio with good Web and Android support. |
-| GitHub Actions workflows | CI plus release automation for native, web, and mobile targets. |
-
-### Platform Support
-
-| Platform | Workflow |
-|---|---|
-| Windows | `cargo build --profile dist` |
-| Linux | `cargo build --profile dist` |
-| macOS | `cargo build --profile dist` |
-| Web (Wasm) | `trunk build --release` |
-| Android | `cargo apk run --manifest-path Bevy/mobile/Cargo.toml` |
-| iOS | `make run` inside `Bevy/mobile/` |
-
-<BR>
-<BR>
-
-## Overview
-
-### Features
-
-This project is a living Bevy template. It gives you a clean starting point for architecture, input abstraction, typed asset loading, audio, tests, and multi-platform builds.
-
-Core capabilities included today:
-
-- A working **Bevy ECS-oriented layout** under `Bevy/src/`
-- **`Components/`** for pure component data
-- **`Resources/`** for actions, assets, and shared runtime state
-- **`Systems/`** for system-function-heavy plugin entrypoints, one per feature
-- **`Plugins/`** for feature-level Bevy Plugin implementations
-- **`Tests/`** for headless Rust test modules
-- Input abstraction from raw device input into an `Actions` resource
-- A three-state flow: `Loading -> Menu -> Playing`
-- A small example ["game"](https://niklasei.github.io/bevy_game_template/)
-- Easy web iteration via [trunk] with `trunk serve --features dev_wasm`
-- Native execution with `cargo run`
-- CI checks for native platforms on every push
-- Release workflows for Windows, Linux, macOS, Web, and mobile development/release pipelines
-
-WARNING: if you work in a private repository, please be aware that macOS and Windows runners cost more build minutes. For public repositories the workflow runners are free.
-
-### Structure
-
-**Repository**
-- `README.md` - Root entry point and migration-aware documentation
-- `Bevy/` - Active project root
-
-**Documentation**
-- `Bevy/AGENTS.md` - Current conventions and folder map
-
-**Runtime**
-- `Bevy/src/Runtime/Client/Components/` - ECS components
-- `Bevy/src/Runtime/Client/Resources/` - Resources and input/action models
-- `Bevy/src/Runtime/Client/Systems/` - System-function-heavy plugin entrypoints
-- `Bevy/src/Runtime/Client/Plugins/` - Feature-level Bevy Plugin implementations
-- `Bevy/src/Runtime/Client/Lib.rs` - GamePlugin and GameState definition
-- `Bevy/src/Runtime/Client/Main.rs` - Native and web app entrypoint
-- `Bevy/src/Runtime/Server/` - Future server/headless scaffold
-
-**Testing**
-- `Bevy/src/Tests/` - Headless in-crate test modules
-
-**Build and Assets**
-- `Bevy/build/` - Platform-specific build assets and packaging support
-- `Bevy/assets/` - Runtime assets
-- `Bevy/mobile/` - Android and iOS workspace crate
-
-### Build Instructions
-
-#### Native Build
-
-Run from repo root:
-
-```cmd
-cd Bevy
-cargo run-dev
-```
-
-`cargo run-dev` is a repo alias for `cargo run --features dev_native`, which enables Bevy dynamic linking and Bevy's official `file_watcher` asset hot reload for faster native iteration.
-Use plain `cargo run` when you want to verify the non-dev-feature path.
-
-#### Asset Hot Reload (Native)
-
-When running with `cargo run-dev`, edits to files under `Bevy/assets/` are watched and reloaded at runtime by Bevy's asset system.
-
-Current limitations of this official workflow:
-
-- It only applies to assets loaded through Bevy's `AssetServer` (for example, textures/audio loaded from `assets/`), not arbitrary files you read manually.
-- It is enabled in this template's `dev_native` path; `cargo run` without `--features dev_native` does not enable the watcher.
-- Web/WASM and mobile workflows do not provide this native filesystem watching behavior at runtime.
-- File watching depends on OS filesystem notifications and can be less reliable on some network/virtualized/synced folders.
-
-On Windows, `Bevy/.cargo/config.toml` sets the linker to `rust-lld.exe` for faster links.
-
-#### Fast Compile Timing Check (Native)
-
-Run from repo root on the same machine/session to get meaningful comparisons:
-
-```cmd
-cd Bevy
-cargo clean
-Measure-Command { cargo check-dev } | Select-Object TotalSeconds
-Measure-Command { cargo check-dev } | Select-Object TotalSeconds
-```
-
-Then change one small Rust line (for example in `Bevy/src/Runtime/Client/Plugins/PlayerPlugin.rs`) and time again:
-
-```cmd
-cd Bevy
-Measure-Command { cargo check-dev } | Select-Object TotalSeconds
-```
-
-Expected behavior: first build is much slower (cold), while warm incremental checks after tiny edits are much faster.
-
-For an optimized distribution build from repo root:
-
-```cmd
-cd Bevy
-cargo build --profile dist
-```
-
-#### Web Build
-
-**Prerequisites (one-time setup):**
-
-```cmd
-cargo install --locked trunk
-rustup target add wasm32-unknown-unknown
-```
-
-**Development server** (auto-rebuilds on code changes, served at `http://localhost:8080`) from repo root:
-
-```cmd
-cd Bevy
-trunk serve --features dev_wasm
-```
-
-For fast wasm compile checks without bundling, use:
-
-```cmd
-cd Bevy
-cargo check-wasm
-```
-
-**Production web build** (outputs to `Bevy/dist/`) from repo root:
-
-```cmd
-cd Bevy
-trunk build --release
-```
-
-For an optimized wasm binary without Trunk bundling, use:
-
-```cmd
-cd Bevy
-cargo build-wasm-release
-```
-
-#### Optional: Experimental Cranelift Path
-
-Cranelift can reduce compile time further in some projects, but it is nightly-only and can drift with toolchain updates.
-Keep this as an opt-in local experiment, not a default team workflow.
-
-```cmd
-rustup toolchain install nightly
-rustup component add rustc-codegen-cranelift-preview --toolchain nightly
-cd Bevy
-cargo +nightly check -Zcodegen-backend=cranelift
-```
-
-### How To Use This Template
-
-1. Click "Use this template" on the repository's page
-1. Look for `ToDo` to use your own game name everywhere
-1. [Update the icons as described below](#updating-the-icons)
-1. Start coding
-
-Platform entry points:
-
-- Native app (fast iteration): `cargo run-dev`
-- Web build: `trunk serve --features dev_wasm`
-- Android app: `cargo apk run --manifest-path Bevy/mobile/Cargo.toml`
-- iOS app: `make run` inside `Bevy/mobile`
-
-Web requirements:
-
-- Install [trunk]: `cargo install --locked trunk`
-- Install the wasm target: `rustup target add wasm32-unknown-unknown`
-- The dev server runs on `8080` and automatically rebuilds and reloads
-
-Android requirements:
-
-- Follow the [Bevy example README Android setup][android-instructions]
-
-iOS requirements:
-
-- Install Xcode through the App Store
-- Launch Xcode and install the iOS simulator
-- Install the Rust targets with `rustup target add aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim`
-- Run `make run` inside `Bevy/mobile`
-
-You should keep the `Bevy/documentation/credits` directory up to date. The release workflow automatically includes the directory in every build.
-
-### Updating The Icons
-
-1. Replace `Bevy/build/macos/icon_1024x1024.png` with a `1024 x 1024` PNG icon and run `create_icns.sh` or `create_icns_linux.sh` inside `Bevy/build/macos`
-1. Replace `Bevy/build/windows/icon.ico` for the Windows executable and the web favicon
-1. Replace `Bevy/build/android/res/mipmap-mdpi/icon.png` with `macos/AppIcon.iconset/icon_256x256.png`, renamed to `icon.png`
-
-Windows `.ico` creation steps:
-
-1. Open `macos/AppIcon.iconset/icon_256x256.png` in [Gimp](https://www.gimp.org/downloads/)
-1. Select `File > Export As`
-1. Change the extension to `.ico`
-1. Save as `Bevy/build/windows/icon.ico`
-
-### Deploy Mobile Platforms
-
-For general mobile support context, see [Notes on mobile development with Bevy][mobile_dev_with_bevy_2].
-
-**Android**
-
-Currently, `cargo-apk` is used to run the development app. APKs can no longer be published in the store and `cargo-apk` cannot produce the required AAB. Because of that, the repo includes setup for two Android-related tools:
-
-- [`Bevy/mobile/Cargo.toml`](./Bevy/mobile/Cargo.toml) configures `cargo-apk` under `package.metadata.android`
-- [`Bevy/mobile/manifest.yaml`](./Bevy/mobile/manifest.yaml) configures a custom fork of `xbuild` used by the `release-android-google-play` workflow to create an AAB
-
-Additional reference: [Android release workflow setup][workflow_bevy_android]
-
-**iOS**
-
-The setup closely follows the Bevy mobile example.
-
-Additional reference: [iOS release workflow setup][workflow_bevy_ios]
-
-### Removing Mobile Platforms
-
-If you do not want Android or iOS targets, delete:
-
-- `Bevy/mobile`
-- `Bevy/build/android`
-- `Bevy/build/ios`
-
-Then remove the `[workspace]` section from `Bevy/Cargo.toml`.
-
-### Development Environments
-
-#### Nix Support
-
-`nixgl` is only used on non-NixOS Linux systems. When running there, use:
-
-```cmd
-nix develop --impure
-```
-
-If using `nixgl`, run `gl cargo run`; otherwise use `cargo` as usual.
-
-<BR>
-<BR>
+---
 
 ## Resources
 
-### Rust
+- Rust hot reload background:<BR> https://johnaustin.io/articles/2022/hot-reloading-rust
+- Inspired by:<BR> https://github.com/SamuelAsherRivello/rust-project-template
 
-- [A half-hour to learn Rust][learn-rust]
-
-### Bevy
-
-- [Bevy learning page][bevy-learn]
-- [Bevy Cheat Book][Bevy Cheat Book]
-- [Official Bevy Discord server][bevy-discord]
-- [Bevy introduction and walkthrough][bevy-youtube-intro]
-- [Android setup in Bevy examples][android-instructions]
-- [iOS setup in Bevy examples][ios-instructions]
-
-<BR>
-<BR>
+---
 
 ## Credits
-
-### Original
-
-- Template source: <a href="https://github.com/NiklasEi/bevy_game_template">https://github.com/NiklasEi/bevy_game_template</a>
-
-### New
 
 **Created By**
 
@@ -359,26 +50,11 @@ If using `nixgl`, run `gl cargo run`; otherwise use `cargo` as usual.
 
 **Contact**
 
-- Twitter - <a href="https://twitter.com/srivello/">@srivello</a>
-- Git - <a href="https://github.com/SamuelAsherRivello/">Github.com/SamuelAsherRivello</a>
-- Resume & Portfolio - <a href="http://www.SamuelAsherRivello.com">SamuelAsherRivello.com</a>
-- LinkedIn - <a href="https://Linkedin.com/in/SamuelAsherRivello">Linkedin.com/in/SamuelAsherRivello</a> <--- Say Hello! :)
+- Twitter - [@srivello](https://twitter.com/srivello)
+- Git - [Github.com/SamuelAsherRivello](https://github.com/SamuelAsherRivello)
+- Resume & Portfolio - [SamuelAsherRivello.com](https://www.SamuelAsherRivello.com)
+- LinkedIn - [Linkedin.com/in/SamuelAsherRivello](https://www.linkedin.com/in/SamuelAsherRivello) <--- Say Hello! :)
 
 **License**
 
-Provided as-is under <a href="./LICENSE">MIT License</a> | Copyright ™ & © 2006 - 2026 Rivello Multimedia Consulting, LLC
-
-[bevy]: https://bevyengine.org/
-[learn-rust]: https://fasterthanli.me/articles/a-half-hour-to-learn-rust
-[bevy-learn]: https://bevyengine.org/learn/
-[bevy-youtube-intro]: https://www.youtube.com/watch?v=yFOPtYwnDjU&list=WL&index=9&t=2517s
-[bevy-discord]: https://discord.gg/bevy
-[nikl-twitter]: https://twitter.com/nikl_me
-[nikl-mastodon]: https://mastodon.online/@nikl_me
-[Bevy Cheat Book]: https://bevy-cheatbook.github.io/introduction.html
-[trunk]: https://trunkrs.dev/
-[android-instructions]: https://github.com/bevyengine/bevy/blob/latest/examples/README.md#setup
-[ios-instructions]: https://github.com/bevyengine/bevy/blob/latest/examples/README.md#setup-1
-[mobile_dev_with_bevy_2]: https://www.nikl.me/blog/2023/notes_on_mobile_development_with_bevy_2/
-[workflow_bevy_android]: https://www.nikl.me/blog/2023/github_workflow_to_publish_android_app/
-[workflow_bevy_ios]: https://www.nikl.me/blog/2023/github_workflow_to_publish_ios_app/
+Provided as-is under [MIT License](./LICENSE) | Copyright ™ & © 2006 - 2026 Rivello Multimedia Consulting, LLC

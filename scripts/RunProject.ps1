@@ -1,0 +1,15 @@
+$ErrorActionPreference = "Stop"
+
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Resolve-Path (Join-Path $ScriptRoot "..")
+Set-Location $ProjectRoot
+
+Write-Host "Building project..."
+cargo build -p game
+
+Write-Host ""
+Write-Host "Starting project."
+Write-Host "Press Ctrl+C to stop."
+Write-Host ""
+
+cargo run -p game-shell

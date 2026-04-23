@@ -1,0 +1,3 @@
+[workspace]
+members = ["rust/crates/game_api", "rust/crates/game_shell", "rust/crates/game"]
+resolver = "3"

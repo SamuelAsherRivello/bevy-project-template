@@ -1,0 +1,20 @@
+[package]
+name = "game-shell"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { version = "0.15", features = ["webgpu"] }
+bevy-inspector-egui = "0.30"
+game-api = { path = "../game_api" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+libloading = "0.8"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.7"
+game = { path = "../game" }
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
+tracing-wasm = "0.2.1"
+web-time = "1.1.0"
+web-sys = { version = "0.3.95", features = ["console"] }
