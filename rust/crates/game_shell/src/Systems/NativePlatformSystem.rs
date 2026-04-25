@@ -1,4 +1,4 @@
-﻿use std::{
+use std::{
     env,
     error::Error,
     fs,
@@ -9,24 +9,27 @@
 
 use bevy::prelude::*;
 use bevy::window::{PrimaryWindow, WindowClosing, WindowMoved, WindowPosition};
-use game_api::{Context, RenderPacket};
+use game_api::Context;
 use std::time::SystemTime as StdSystemTime;
 
-use crate::{host_state_resource::HostStateResource, shell_context_resource::ShellContextResource};
+use crate::{
+    shell_context_resource::ShellContextResource, shell_runtime_resource::ShellRuntimeResource,
+};
 
 #[allow(improper_ctypes_definitions)]
 type AppInitialize = extern "C" fn(&mut dyn Context);
 #[allow(improper_ctypes_definitions)]
-type AppHotReload = extern "C" fn(&mut dyn Context, u64);
+type AppHotReload = extern "C" fn(&mut World, &mut dyn Context, u64);
 #[allow(improper_ctypes_definitions)]
-type GameFrame = extern "C" fn(&mut dyn Context);
-type GameRenderPacket = extern "C" fn() -> RenderPacket;
+type GameFrame = extern "C" fn(&mut World, &mut dyn Context);
+#[allow(improper_ctypes_definitions)]
+type AppCleanup = extern "C" fn(&mut World);
 
 pub struct GameRuntime {
     initialize: AppInitialize,
     hot_reload: AppHotReload,
     frame: GameFrame,
-    render_packet: GameRenderPacket,
+    cleanup: AppCleanup,
     dll_modified: StdSystemTime,
     loaded_from: PathBuf,
     library: Option<libloading::Library>,
@@ -34,6 +37,7 @@ pub struct GameRuntime {
 
 impl GameRuntime {
     pub fn load(
+        world: &mut World,
         context: &mut ShellContextResource,
         run_initialize: bool,
         reload_count: u64,
@@ -55,8 +59,8 @@ impl GameRuntime {
             let symbol: libloading::Symbol<GameFrame> = library.get(b"hot_frame")?;
             *symbol
         };
-        let render_packet = unsafe {
-            let symbol: libloading::Symbol<GameRenderPacket> = library.get(b"hot_render_packet")?;
+        let cleanup = unsafe {
+            let symbol: libloading::Symbol<AppCleanup> = library.get(b"AppCleanup")?;
             *symbol
         };
 
@@ -66,7 +70,7 @@ impl GameRuntime {
             initialize,
             hot_reload,
             frame,
-            render_packet,
+            cleanup,
             dll_modified,
             loaded_from,
             library: Some(library),
@@ -75,7 +79,7 @@ impl GameRuntime {
         if run_initialize {
             game.initialize(context);
         }
-        game.hot_reload(context, reload_count);
+        game.hot_reload(world, context, reload_count);
 
         Ok(game)
     }
@@ -84,16 +88,16 @@ impl GameRuntime {
         (self.initialize)(context);
     }
 
-    fn hot_reload(&self, context: &mut dyn Context, reload_count: u64) {
-        (self.hot_reload)(context, reload_count);
+    fn hot_reload(&self, world: &mut World, context: &mut dyn Context, reload_count: u64) {
+        (self.hot_reload)(world, context, reload_count);
     }
 
-    pub fn frame(&self, context: &mut dyn Context) {
-        (self.frame)(context);
+    pub fn frame(&self, world: &mut World, context: &mut dyn Context) {
+        (self.frame)(world, context);
     }
 
-    pub fn render_packet(&self) -> RenderPacket {
-        (self.render_packet)()
+    pub fn cleanup(&self, world: &mut World) {
+        (self.cleanup)(world);
     }
 
     pub fn artifact_changed(&self) -> bool {
@@ -147,10 +151,6 @@ pub fn configure_runtime() {
     }
 }
 
-pub fn debug_log(_message: &str) {}
-
-pub fn debug_render_packet(_frame: u64, _packet: &RenderPacket) {}
-
 pub fn ensure_game_ready() {
     if !game_dll_path().exists() {
         build_game(&mut None);
@@ -169,7 +169,7 @@ pub fn primary_window(initial_window_position: Option<IVec2>) -> Window {
 }
 
 pub fn track_window_position_update_system(
-    mut host: NonSendMut<HostStateResource>,
+    mut runtime: NonSendMut<ShellRuntimeResource>,
     mut moved_events: EventReader<WindowMoved>,
     primary_window: Query<Entity, With<PrimaryWindow>>,
 ) {
@@ -179,13 +179,13 @@ pub fn track_window_position_update_system(
 
     for event in moved_events.read() {
         if event.window == primary_window {
-            host.last_window_position = Some(event.position);
+            runtime.last_window_position = Some(event.position);
         }
     }
 }
 
 pub fn persist_window_position_on_close_update_system(
-    host: NonSend<HostStateResource>,
+    runtime: NonSend<ShellRuntimeResource>,
     mut closing_events: EventReader<WindowClosing>,
     primary_window: Query<(Entity, &Window), With<PrimaryWindow>>,
 ) {
@@ -200,7 +200,7 @@ pub fn persist_window_position_on_close_update_system(
 
         let position = match window.position {
             WindowPosition::At(position) => Some(position),
-            _ => host.last_window_position,
+            _ => runtime.last_window_position,
         };
 
         if let Some(position) = position {
@@ -229,7 +229,10 @@ fn build_game(context: &mut Option<&mut ShellContextResource>) {
             append_log(context, format!("game build failed with {}", output.status));
             append_command_output(context, &output.stderr);
         }
-        Err(error) => append_log(context, format!("failed to run cargo build -p game: {error}")),
+        Err(error) => append_log(
+            context,
+            format!("failed to run cargo build -p game: {error}"),
+        ),
     }
 }
 
@@ -328,4 +331,3 @@ fn workspace_root() -> PathBuf {
         .expect("game_shell crate should be inside rust/crates/")
         .to_path_buf()
 }
-

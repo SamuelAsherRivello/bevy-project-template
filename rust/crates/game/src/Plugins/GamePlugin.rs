@@ -1,22 +1,21 @@
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Startup, Update};
 
 use crate::{
-    input_plugin::InputPlugin, player_plugin::PlayerPlugin, ui::UiTextResource,
+    input_plugin::InputPlugin,
+    player_plugin::PlayerPlugin,
+    ui::UiTextResource,
+    ui_system::{ui_startup_system, ui_update_system},
+    world_system::world_startup_system,
 };
 
-pub struct GamePlugin {
-    pub reload_count: u64,
-}
+pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(UiTextResource {
-            text: reload_text(self.reload_count),
-        })
-        .add_plugins((InputPlugin, PlayerPlugin));
+        app.init_resource::<UiTextResource>()
+            .add_systems(Startup, world_startup_system)
+            .add_systems(Startup, ui_startup_system)
+            .add_systems(Update, ui_update_system)
+            .add_plugins((InputPlugin, PlayerPlugin));
     }
-}
-
-fn reload_text(reload_count: u64) -> String {
-    format!("Bevy Project Template\nReloads : {reload_count}\nFrame: 0")
 }

@@ -1,4 +1,4 @@
-﻿#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[path = "NativePlatformSystem.rs"]
 mod native_platform_system;
 #[cfg(target_arch = "wasm32")]
@@ -9,4 +9,3 @@ mod wasm_platform_system;
 pub use native_platform_system::*;
 #[cfg(target_arch = "wasm32")]
 pub use wasm_platform_system::*;
-

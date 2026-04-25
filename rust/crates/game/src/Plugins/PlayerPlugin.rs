@@ -10,4 +10,3 @@ impl Plugin for PlayerPlugin {
             .add_systems(Update, player_update_system);
     }
 }
-

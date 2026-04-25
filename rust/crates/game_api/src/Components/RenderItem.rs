@@ -1,4 +1,4 @@
-﻿use crate::{color_rgba::ColorRgba, vec3_data::Vec3Data};
+use crate::{color_rgba::ColorRgba, vec3_data::Vec3Data};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
@@ -9,4 +9,3 @@ pub struct RenderItem {
     pub rotation_radians: Vec3Data,
     pub scale: Vec3Data,
 }
-

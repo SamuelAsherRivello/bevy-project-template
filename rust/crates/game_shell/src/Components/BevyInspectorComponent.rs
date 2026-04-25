@@ -1,6 +1,5 @@
-﻿use bevy::prelude::*;
+use bevy::prelude::*;
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct BevyInspectorComponent;
-

@@ -1,4 +1,4 @@
-﻿#[repr(C)]
+#[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ColorRgba {
     pub red: f32,
@@ -6,4 +6,3 @@ pub struct ColorRgba {
     pub blue: f32,
     pub alpha: f32,
 }
-

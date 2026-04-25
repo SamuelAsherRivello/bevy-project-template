@@ -1,7 +1,7 @@
-﻿use std::error::Error;
+use std::error::Error;
 
 use bevy::prelude::*;
-use game_api::{Context, RenderPacket};
+use game_api::Context;
 
 use crate::shell_context_resource::ShellContextResource;
 
@@ -9,6 +9,7 @@ pub struct GameRuntime;
 
 impl GameRuntime {
     pub fn load(
+        world: &mut World,
         context: &mut ShellContextResource,
         run_initialize: bool,
         reload_count: u64,
@@ -19,17 +20,17 @@ impl GameRuntime {
             game::app_initialize(context);
         }
         debug_log("GameRuntime::load(): app_hot_reload()");
-        game::app_hot_reload(context, reload_count);
+        game::app_hot_reload(world, context, reload_count);
         debug_log("GameRuntime::load(): end");
         Ok(Self)
     }
 
-    pub fn frame(&self, context: &mut dyn Context) {
-        game::hot_frame_rust(context);
+    pub fn frame(&self, world: &mut World, context: &mut dyn Context) {
+        game::hot_frame_rust(world, context);
     }
 
-    pub fn render_packet(&self) -> RenderPacket {
-        game::hot_render_packet_rust()
+    pub fn cleanup(&self, world: &mut World) {
+        game::app_cleanup(world);
     }
 
     pub fn unload(&mut self, context: &mut ShellContextResource) {
@@ -53,21 +54,6 @@ pub fn debug_log(message: &str) {
     web_sys::console::log_1(&message.into());
 }
 
-pub fn debug_render_packet(frame: u64, packet: &RenderPacket) {
-    if frame < 5 || frame % 120 == 0 {
-        debug_log(&format!(
-            "frame={frame} render_items={} reloads={} ui_text_len={} clear=({:.2}, {:.2}, {:.2}, {:.2})",
-            packet.render_item_count,
-            packet.reload_count,
-            packet.ui_text_len,
-            packet.clear_color.red,
-            packet.clear_color.green,
-            packet.clear_color.blue,
-            packet.clear_color.alpha
-        ));
-    }
-}
-
 pub fn primary_window(_initial_window_position: Option<IVec2>) -> Window {
     Window {
         title: "Rust Hot Reload Demo - Bevy Web".to_owned(),
@@ -86,4 +72,3 @@ pub fn persist_window_position_on_close_update_system() {}
 pub fn load_saved_window_position() -> Option<IVec2> {
     None
 }
-
