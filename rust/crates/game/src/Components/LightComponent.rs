@@ -1,21 +1,16 @@
-use bevy_ecs::component::Component;
-use game_api::Vec3Data;
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct LightComponent {
     pub intensity: f32,
-    pub translation: Vec3Data,
+    pub translation: Vec3,
 }
 
 impl Default for LightComponent {
     fn default() -> Self {
         Self {
             intensity: 2_000_000.0,
-            translation: Vec3Data {
-                x: 4.0,
-                y: 8.0,
-                z: 4.0,
-            },
+            translation: Vec3::new(4.0, 8.0, 4.0),
         }
     }
 }

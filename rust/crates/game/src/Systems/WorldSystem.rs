@@ -15,15 +15,7 @@ pub fn world_startup_system(
         Name::new("Camera3d"),
         Camera3d::default(),
         Msaa::Off,
-        Transform::from_xyz(
-            camera.translation.x,
-            camera.translation.y,
-            camera.translation.z,
-        )
-        .looking_at(
-            Vec3::new(camera.look_at.x, camera.look_at.y, camera.look_at.z),
-            Vec3::Y,
-        ),
+        Transform::from_translation(camera.translation).looking_at(camera.look_at, Vec3::Y),
         camera,
         GameComponent,
     ));
@@ -36,11 +28,7 @@ pub fn world_startup_system(
             shadows_enabled: true,
             ..Default::default()
         },
-        Transform::from_xyz(
-            light.translation.x,
-            light.translation.y,
-            light.translation.z,
-        ),
+        Transform::from_translation(light.translation),
         light,
         GameComponent,
     ));
@@ -51,20 +39,10 @@ pub fn world_startup_system(
         Name::new("Floor"),
         Mesh3d(cube_mesh),
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgba(
-                floor.color.red,
-                floor.color.green,
-                floor.color.blue,
-                floor.color.alpha,
-            ),
+            base_color: floor.color,
             ..Default::default()
         })),
-        Transform::from_xyz(
-            floor.translation.x,
-            floor.translation.y,
-            floor.translation.z,
-        )
-        .with_scale(Vec3::new(floor.scale.x, floor.scale.y, floor.scale.z)),
+        Transform::from_translation(floor.translation).with_scale(floor.scale),
         floor,
         GameComponent,
     ));

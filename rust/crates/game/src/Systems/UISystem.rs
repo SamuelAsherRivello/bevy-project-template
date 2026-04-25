@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    game_component::GameComponent, game_frame_resource::GameFrameResource, ui::UiTextResource,
+    context_resource::ContextResource, game_component::GameComponent, ui::UiTextResource,
     ui_text_component::UITextComponent,
 };
 
@@ -28,13 +28,13 @@ pub fn ui_startup_system(mut commands: Commands) {
 }
 
 pub fn ui_update_system(
-    frame: Res<GameFrameResource>,
+    context: Res<ContextResource>,
     mut ui_text: ResMut<UiTextResource>,
     mut text_query: Query<&mut Text, With<UITextComponent>>,
 ) {
     ui_text.text = format!(
-        "Bevy Project Template\nReloads : {}\nGlobal Frame: {}\nLocal Frame: {}",
-        frame.reload_count, frame.frame_global_count, frame.frame_local_count
+        "Bevy Project Template\nReloads: {}\nGlobal Frame: {}\nLocal Frame: {}",
+        context.reload_count, context.frame_global_count, context.frame_local_count
     );
 
     for mut text in &mut text_query {

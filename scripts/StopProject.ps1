@@ -3,6 +3,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+Write-Host "This script no longer works with the current game.exe run workflow."
+Write-Host "Stop the running game window directly, or press Ctrl+C in the terminal that launched it."
+exit 1
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path (Join-Path $ScriptRoot "..")

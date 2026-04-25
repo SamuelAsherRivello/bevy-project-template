@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path (Join-Path $ScriptRoot "..")
 Set-Location $ProjectRoot
+$env:WGPU_BACKEND = "dx12"
 
 Write-Host "Building project..."
 cargo build -p game
@@ -12,4 +13,4 @@ Write-Host "Starting project."
 Write-Host "Press Ctrl+C to stop."
 Write-Host ""
 
-cargo run -p game-shell
+cargo run -p game

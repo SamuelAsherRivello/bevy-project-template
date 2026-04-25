@@ -3,6 +3,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+Write-Host "This script no longer works with the current typical Bevy game workflow."
+Write-Host "Use scripts\RunProject.ps1 to run the active game app."
+exit 1
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path (Join-Path $ScriptRoot "..")

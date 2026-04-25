@@ -1,3 +1,8 @@
 [workspace]
 members = ["rust/crates/game_api", "rust/crates/game_shell", "rust/crates/game"]
 resolver = "3"
+
+[profile.dev]
+debug = 1
+incremental = true
+codegen-units = 256
