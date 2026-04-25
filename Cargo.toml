@@ -1,5 +1,5 @@
 [workspace]
-members = ["rust/crates/game_api", "rust/crates/game_shell", "rust/crates/game"]
+members = ["Bevy/Crates/Game", "Bevy/Crates/Shared"]
 resolver = "3"
 
 [profile.dev]

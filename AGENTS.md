@@ -2,52 +2,68 @@
 
 ## Project Overview
 
-This template currently runs as a typical Bevy game from the `game` crate. The `game` crate owns the Bevy `App`, window, world setup, player, input, UI, and frame context.
+This template runs as a typical Bevy game from [`Bevy/Crates/Game`](./Bevy/Crates/Game). The workspace uses a 3-crate setup: `game`, `shared`, and local `bevy_simple_subsecond_system`.
 
-Native hot reload was a project goal, but that goal is not currently met. The `game_shell` and `game_api` crates remain in the workspace as experimental scaffolding from the hot-reload effort, but they are not used by the primary run workflow.
+- `game` owns the Bevy `App`, runtime composition, and hot-reloadable gameplay systems.
+- `shared` contains less-frequently edited, potentially reusable plugins/resources/components used by `game`.
+- `bevy_simple_subsecond_system` is the local hot-reload support crate used by `game`.
+
+Hot reload uses `bevy_simple_subsecond_system` through Dioxus CLI (`dx serve --hot-patch`). Systems annotated with `#[hot]` can be patched while the game window stays open.
+
+There are no active `game_shell` or `game_api` crates. Do not add references to those crates unless the user explicitly asks for a new shell/API architecture.
 
 ## Active Architecture
 
-| Crate | Path | Role | Active? |
-|---|---|---|---|
-| `game` | `rust/crates/game` | Main Bevy app and normal run target. | ✅ |
-| `game-api` | `rust/crates/game_api` | Legacy ABI/shared-types experiment for hot reload. | ❌ |
-| `game-shell` | `rust/crates/game_shell` | Legacy window-hosting/hot-reload shell experiment. | ❌ |
-
-The active app is launched with:
-
-```powershell
-powershell.exe -ExecutionPolicy Bypass -File ./scripts/RunProject.ps1
-```
-
-Direct Cargo command:
-
-```powershell
-cargo run -p game
-```
-
-## Hot Reload Status
-
-Do not describe native hot reload as working. It was a goal, but it is not currently implemented in the active workflow.
-
-The previous DLL shell design conflicted with the goal of keeping `game` close to a typical Bevy project. Bevy resources/components such as `Assets<Mesh>`, `ButtonInput<KeyCode>`, and other ECS types do not safely cross a separately linked shell/DLL boundary. The template now prioritizes the typical Bevy project shape.
-
-`RunProjectWithHotReload.ps1` is retained for compatibility. It prints that native hot reload no longer works and then starts the normal `game` app.
-
-`RunProjectWithHotReloadWasm.ps1` and `StopProject.ps1` are obsolete. They print a message and exit.
+| Package | Path | Role |
+|---|---|---|
+| `game` | `Bevy/Crates/Game` | Main Bevy app, normal run target, and hot-reload target. |
+| `shared` | `Bevy/Crates/Shared` | Reusable runtime code shared across games; compiled as a standalone crate. |
+| `bevy_simple_subsecond_system` | `Bevy/Crates/HotReload/bevy_simple_subsecond_system` | Local hot-reload crate used by the game runtime. |
 
 ## Developer Workflows
 
 ### First-Time Setup
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File ./scripts/InstallProject.ps1
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Common/InstallDependencies.ps1
 ```
 
 ### Run Active Game
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File ./scripts/RunProject.ps1
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunGame.ps1
+```
+
+Direct command:
+
+```powershell
+cargo run -p game
+```
+
+### Run With Subsecond Hot Reload
+
+Requires Dioxus CLI:
+
+```powershell
+cargo install dioxus-cli@0.7.0-alpha.1
+```
+
+Run:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Common/RunGameWithHotReload.ps1
+```
+
+The script runs:
+
+```powershell
+dx serve --hot-patch --windows --package game --bin game
+```
+
+### Run Tests
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunGameTests.ps1
 ```
 
 ### Build Only
@@ -57,35 +73,42 @@ cargo build -p game
 cargo check -p game
 ```
 
-## Key Active Files
+## Key Folders
 
-- `rust/crates/game/src/main.rs` — runs the Bevy app and forces DX12 to avoid Vulkan overlay loader errors on Windows.
-- `rust/crates/game/src/lib.rs` — module declarations and `create_app()`.
-- `rust/crates/game/src/Plugins/GamePlugin.rs` — top-level game plugin wiring.
-- `rust/crates/game/src/Plugins/WorldPlugin.rs` — world setup plugin.
-- `rust/crates/game/src/Plugins/InputPlugin.rs` — input plugin.
-- `rust/crates/game/src/Plugins/PlayerPlugin.rs` — player plugin.
-- `rust/crates/game/src/Systems/WorldSystem.rs` — camera, light, and floor setup.
-- `rust/crates/game/src/Systems/InputSystem.rs` — reads Bevy keyboard input into `InputComponent`.
-- `rust/crates/game/src/Systems/PlayerSystem.rs` — moves/animates the player from `InputComponent`.
-- `rust/crates/game/src/Systems/ContextSystem.rs` — increments frame counters.
-- `rust/crates/game/src/Resources/ContextResource.rs` — `reload_count`, `frame_global_count`, and `frame_local_count`.
-- `rust/crates/game/src/Systems/UISystem.rs` — UI text setup and updates.
+- `Bevy` — title-case Rust source root configured in `Bevy/Crates/Game/Cargo.toml`.
+- `Bevy/Crates/Game/Runtime` — game runtime used by normal run and hot reload.
+- `Bevy/Crates/Game/Runtime/Components` — Bevy component types.
+- `Bevy/Crates/Game/Runtime/Plugins` — Bevy plugin wiring.
+- `Bevy/Crates/Game/Runtime/Resources` — Bevy resource types.
+- `Bevy/Crates/Game/Runtime/Systems` — startup and update systems.
+- `Bevy/Crates/Game/Tests` — unit tests for game behavior.
+- `Bevy/Crates/Shared/Runtime` — shared runtime plugins/components/resources/systems for reuse.
+- `Bevy/Crates/HotReload/bevy_simple_subsecond_system` — vendored local hot-reload crate.
+- `Scripts` — Windows PowerShell project workflow scripts.
 
 ## Conventions
 
 Apply these conventions in active `game` code:
 
+- **Folders:** active project folder names use TitleCase, for example `Source`, `Runtime`, `Components`, `Systems`, and `Scripts`. This is required for project-owned folders.
+- **Files:** active game source file names use TitleCase, for example `PlayerSystem.rs` and `ContextResource.rs`. This is required for project-owned source files.
+- **Exceptions:** keep Cargo/tool/metadata names such as `Cargo.toml`, `Cargo.lock`, `README.md`, and `AGENTS.md` in their standard/current names.
 - **Components:** component type names end with `Component`; exactly one component type per file; component filenames end with `Component.rs`.
 - **Plugins:** type names end with `Plugin`; plugin filenames end with `Plugin.rs`.
+- **Plugin layout terms:**
+  - **Collapsed plugin:** a plugin has its own folder and all of its files are within that folder. This style is acceptable.
+  - **Expanded plugin:** a plugin's files are spread across the standard runtime folders. This style is also acceptable.
 - **Resources:** type names end with `Resource`; resource filenames end with `Resource.rs`.
 - **Systems:** scheduled/public system functions live under `Systems/`.
 - **System files:** system filenames end with `System.rs`.
 - **System function names:**
   - startup schedule: `*_startup_system`
   - update schedule: `*_update_system`
+- **Main format:** treat the current `Bevy/Crates/Game/Runtime/Main.rs` as the gold standard. Keep it clear and ordered: Bevy/runtime boilerplate first, then game-specific resources, systems, and plugins. Use short section comments before each block, and use comments like `// World Plugin: Contains camera, lights, floor, and world setup.` before each plugin registration.
+- **Plugin usage:** lean into plugin types from `Bevy/Crates/Game/Runtime/Plugins` for feature areas instead of moving feature setup directly into `Main.rs`. `Main.rs` should compose plugins clearly; plugin files should own their area's startup/update system wiring.
+- **Player reference implementation:** treat the player feature slice as the reference implementation for new gameplay features. `PlayerPlugin.rs`, `PlayerSystem.rs`, and `PlayerComponent.rs` should stay clear, well commented, and functional. Match their separation of concerns: component data in `Components/`, schedule wiring in `Plugins/`, and startup/update behavior plus focused helper functions in `Systems/`.
 - **Plugin wiring style:**
   - `.add_systems(Startup, some_startup_system)`
   - `.add_systems(Update, some_update_system)`
 
-Avoid adding new active dependencies on `game_shell` or `game_api` unless the user explicitly asks to revisit the hot-reload architecture.
+When adding hot-reloadable update behavior, annotate the system function with `#[hot]` from `bevy_simple_subsecond_system::prelude`.
