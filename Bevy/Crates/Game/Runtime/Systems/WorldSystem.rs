@@ -1,3 +1,4 @@
+use avian3d::prelude::{Collider, CollisionEventsEnabled, RigidBody};
 use bevy::{math::primitives::Cuboid, prelude::*, window::PrimaryWindow};
 
 #[derive(Component)]
@@ -27,7 +28,7 @@ impl Default for FloorComponent {
         Self {
             color: Color::srgba(0.18, 0.22, 0.28, 1.0),
             translation: Vec3::new(0.0, -1.0, 0.0),
-            scale: Vec3::new(4.5, 0.25, 4.5),
+            scale: Vec3::new(20.0, 0.25, 20.0),
         }
     }
 }
@@ -40,6 +41,7 @@ struct LightComponent {
     shadows_enabled: bool,
 }
 
+// System handles the setup of the world scene.
 pub fn world_startup_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -63,11 +65,11 @@ pub fn world_startup_system(
     let camera = CameraComponent::default();
     let camera_entity = commands
         .spawn((
-        Name::new("Camera3d"),
-        Camera3d::default(),
-        Msaa::Off,
-        Transform::from_translation(camera.translation).looking_at(camera.look_at, Vec3::Y),
-        camera,
+            Name::new("Camera3d"),
+            Camera3d::default(),
+            Msaa::Off,
+            Transform::from_translation(camera.translation).looking_at(camera.look_at, Vec3::Y),
+            camera,
         ))
         .id();
     commands.entity(camera_parent).add_child(camera_entity);
@@ -118,9 +120,11 @@ pub fn world_startup_system(
     }
 
     let floor = FloorComponent::default();
+    let floor_translation = floor.translation;
+    let floor_collider_size = floor.scale;
     let cube_mesh = meshes.add(Cuboid::new(1.0, 1.0, 1.0));
     commands.spawn((
-        Name::new("Floor"),
+        Name::new("FloorVisual"),
         Mesh3d(cube_mesh),
         MeshMaterial3d(materials.add(StandardMaterial {
             base_color: floor.color,
@@ -129,5 +133,17 @@ pub fn world_startup_system(
         Transform::from_translation(floor.translation).with_scale(floor.scale),
         floor,
     ));
-}
 
+    commands.spawn((
+        Name::new("Floor"),
+        Transform::from_translation(floor_translation),
+        GlobalTransform::default(),
+        RigidBody::Static,
+        Collider::cuboid(
+            floor_collider_size.x,
+            floor_collider_size.y,
+            floor_collider_size.z,
+        ),
+        CollisionEventsEnabled,
+    ));
+}

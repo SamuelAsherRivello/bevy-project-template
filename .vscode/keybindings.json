@@ -1,10 +1,6 @@
 [
     {
         "key": "ctrl+b",
-        "command": "-workbench.action.toggleSidebarVisibility"
-    },
-    {
-        "key": "ctrl+b",
         "command": "workbench.action.tasks.runTask",
         "args": "Run Game With Hot Reload"
     }

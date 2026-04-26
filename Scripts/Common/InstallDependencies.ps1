@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path (Join-Path $ScriptRoot "..\..")
+& (Join-Path $ScriptRoot "..\Other\StopGame.ps1")
 Set-Location $ProjectRoot
 
 function Add-CargoToPathIfPresent {
@@ -33,10 +34,55 @@ function Ensure-RustToolchain {
     }
 }
 
-Ensure-RustToolchain
+function Ensure-DioxusCli {
+    $RequiredDxVersion = "0.7.6"
+    $DxCommand = Get-Command dx -ErrorAction SilentlyContinue
 
-Write-Host "Building game..."
-cargo build -p game
+    if ($DxCommand) {
+        $DxVersionOutput = (& dx --version | Out-String).Trim()
+        if ($DxVersionOutput -match "^dioxus\s+0\.7(\.|-|$)") {
+            Write-Host "Dioxus CLI is already installed and compatible ($DxVersionOutput)."
+            return
+        }
+
+        Write-Host "Dioxus CLI is installed but not on a known-compatible 0.7 version: $DxVersionOutput"
+        Write-Host "Reinstalling Dioxus CLI $RequiredDxVersion for hot reload compatibility..."
+        cargo install dioxus-cli@$RequiredDxVersion --force
+        return
+    }
+
+    Write-Host "Installing Dioxus CLI $RequiredDxVersion for hot reload..."
+    cargo install dioxus-cli@$RequiredDxVersion
+}
+
+function Ensure-Sccache {
+    if (Get-Command sccache -ErrorAction SilentlyContinue) {
+        Write-Host "sccache is already installed."
+        return
+    }
+
+    Write-Host "Installing sccache for faster repeated Rust builds..."
+    cargo install --locked sccache
+
+    if (Get-Command sccache -ErrorAction SilentlyContinue) {
+        Write-Host "sccache installation complete."
+        return
+    }
+
+    Write-Warning "sccache latest failed to install; retrying with 0.9.1 for toolchain compatibility..."
+    cargo install --locked sccache@0.9.1
+
+    if (Get-Command sccache -ErrorAction SilentlyContinue) {
+        Write-Host "sccache installation complete (0.9.1)."
+        return
+    }
+
+    Write-Warning "sccache installation failed; builds will continue without compiler caching."
+}
+
+Ensure-RustToolchain
+Ensure-DioxusCli
+Ensure-Sccache
 
 Write-Host ""
-Write-Host "Game install complete."
+Write-Host "Dependency install complete."

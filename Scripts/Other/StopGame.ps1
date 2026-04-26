@@ -27,7 +27,7 @@ foreach ($ProcessName in $ProcessNames) {
 $HostProcessNames = @("powershell.exe", "pwsh.exe")
 $HostCommandLinePatterns = @(
     "RunGameWithHotReload.ps1",
-    "RunGameWithHotReloadWeb.ps1",
+    "RunGameWeb.ps1",
     "RunProjectWithHotReload.ps1",
     "dx serve"
 )
@@ -84,7 +84,24 @@ if ($StoppedCount -eq 0) {
 if (Test-Path $TargetRoot) {
     $RemovedCargoLockCount = 0
     $FailedCargoLockCount = 0
-    $CargoLockFiles = Get-ChildItem -Path $TargetRoot -Recurse -Force -Filter ".cargo-lock" -ErrorAction SilentlyContinue
+    $CargoLockFiles = @()
+    $KnownBuildRoots = @(
+        (Join-Path $TargetRoot "debug"),
+        (Join-Path $TargetRoot "desktop-dev"),
+        (Join-Path $TargetRoot "wasm-dev"),
+        (Join-Path $TargetRoot "x86_64-pc-windows-msvc\debug"),
+        (Join-Path $TargetRoot "x86_64-pc-windows-msvc\desktop-dev"),
+        (Join-Path $TargetRoot "wasm32-unknown-unknown\debug")
+    )
+
+    foreach ($BuildRoot in $KnownBuildRoots) {
+        if (-not (Test-Path $BuildRoot)) {
+            continue
+        }
+
+        $CargoLockFiles += Get-ChildItem -Path $BuildRoot -Recurse -Force -Filter ".cargo-lock" -ErrorAction SilentlyContinue
+    }
+
     foreach ($CargoLockFile in $CargoLockFiles) {
         $RelativeLockPath = $CargoLockFile.FullName.Replace("$ProjectRootPath\", "")
         try {
@@ -99,5 +116,38 @@ if (Test-Path $TargetRoot) {
 
     if ($RemovedCargoLockCount -gt 0 -or $FailedCargoLockCount -gt 0) {
         Write-Host "Cargo lock cleanup summary: removed=$RemovedCargoLockCount, failed=$FailedCargoLockCount"
+    }
+
+    # Clean stale hot-reload game artifacts that can survive forced process stops and cause linker failures.
+    $DesktopDevArtifactRoots = @(
+        (Join-Path $TargetRoot "desktop-dev\deps"),
+        (Join-Path $TargetRoot "x86_64-pc-windows-msvc\desktop-dev\deps")
+    )
+
+    $RemovedDesktopDevArtifactsCount = 0
+    $FailedDesktopDevArtifactsCount = 0
+
+    foreach ($ArtifactRoot in $DesktopDevArtifactRoots) {
+        if (-not (Test-Path $ArtifactRoot)) {
+            continue
+        }
+
+        $StaleGameArtifacts = Get-ChildItem -Path $ArtifactRoot -Force -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "game.*" }
+
+        foreach ($Artifact in $StaleGameArtifacts) {
+            $RelativeArtifactPath = $Artifact.FullName.Replace("$ProjectRootPath\", "")
+            try {
+                Remove-Item -LiteralPath $Artifact.FullName -Force
+                $RemovedDesktopDevArtifactsCount += 1
+            } catch {
+                $FailedDesktopDevArtifactsCount += 1
+                Write-Host "[desktop-dev artifact remove failed] $RelativeArtifactPath"
+            }
+        }
+    }
+
+    if ($RemovedDesktopDevArtifactsCount -gt 0 -or $FailedDesktopDevArtifactsCount -gt 0) {
+        Write-Host "Desktop-dev artifact cleanup summary: removed=$RemovedDesktopDevArtifactsCount, failed=$FailedDesktopDevArtifactsCount"
     }
 }

@@ -2,11 +2,11 @@
 
 ## Project Overview
 
-This template runs as a typical Bevy game from [`Bevy/Crates/Game`](./Bevy/Crates/Game). The workspace uses a 3-crate setup: `game`, `shared`, and local `bevy_simple_subsecond_system`.
+This template runs as a typical Bevy game from [`Bevy/Crates/Game`](./Bevy/Crates/Game). The workspace uses a 2-crate setup: `game` and `shared`.
 
 - `game` owns the Bevy `App`, runtime composition, and hot-reloadable gameplay systems.
 - `shared` contains less-frequently edited, potentially reusable plugins/resources/components used by `game`.
-- `bevy_simple_subsecond_system` is the local hot-reload support crate used by `game`.
+- `bevy_simple_subsecond_system` is vendored under `shared` runtime 3rd-party code and used as a path dependency.
 
 Hot reload uses `bevy_simple_subsecond_system` through Dioxus CLI (`dx serve --hot-patch`). Systems annotated with `#[hot]` can be patched while the game window stays open.
 
@@ -18,17 +18,16 @@ There are no active `game_shell` or `game_api` crates. Do not add references to 
 |---|---|---|
 | `game` | `Bevy/Crates/Game` | Main Bevy app, normal run target, and hot-reload target. |
 | `shared` | `Bevy/Crates/Shared` | Reusable runtime code shared across games; compiled as a standalone crate. |
-| `bevy_simple_subsecond_system` | `Bevy/Crates/HotReload/bevy_simple_subsecond_system` | Local hot-reload crate used by the game runtime. |
 
 ## Developer Workflows
 
-### First-Time Setup
+### 01. First-Time Setup
 
 ```powershell
 powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Common/InstallDependencies.ps1
 ```
 
-### Run Active Game
+### 02. Run Active Game
 
 ```powershell
 powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunGame.ps1
@@ -40,12 +39,16 @@ Direct command:
 cargo run -p game
 ```
 
+### 03. Try Hot Reload
+
+Run 01 and 02, then edit line 23 in [Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs](Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs) (the PLAYER_COLOR constant) and save.
+
 ### Run With Subsecond Hot Reload
 
 Requires Dioxus CLI:
 
 ```powershell
-cargo install dioxus-cli@0.7.0-alpha.1
+cargo install dioxus-cli@0.7.6
 ```
 
 Run:
@@ -83,7 +86,7 @@ cargo check -p game
 - `Bevy/Crates/Game/Runtime/Systems` — startup and update systems.
 - `Bevy/Crates/Game/Tests` — unit tests for game behavior.
 - `Bevy/Crates/Shared/Runtime` — shared runtime plugins/components/resources/systems for reuse.
-- `Bevy/Crates/HotReload/bevy_simple_subsecond_system` — vendored local hot-reload crate.
+- `Bevy/Crates/Shared/Runtime/3rdParty/bevy_simple_subsecond_system` — vendored local hot-reload support dependency.
 - `Scripts` — Windows PowerShell project workflow scripts.
 
 ## Conventions
@@ -98,6 +101,7 @@ Apply these conventions in active `game` code:
 - **Plugin layout terms:**
   - **Collapsed plugin:** a plugin has its own folder and all of its files are within that folder. This style is acceptable.
   - **Expanded plugin:** a plugin's files are spread across the standard runtime folders. This style is also acceptable.
+  - **Naming token:** each plugin has a naming token derived from its plugin name (e.g. `BulletPlugin` → token `Bullet`). All types, files, and functions belonging to that plugin must begin with the token. For example: `BulletSpawnMessage`, `BulletMeshResource`, `BulletSpawnSoundResource`. This applies to both collapsed and expanded plugins.
 - **Resources:** type names end with `Resource`; resource filenames end with `Resource.rs`.
 - **Systems:** scheduled/public system functions live under `Systems/`.
 - **System files:** system filenames end with `System.rs`.
